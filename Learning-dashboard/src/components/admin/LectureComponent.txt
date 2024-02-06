@@ -1,0 +1,114 @@
+import React, { useState, useEffect } from 'react';
+import { PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/solid';
+import { Card, CardBody, Typography, Button, Tabs, TabsHeader, Tab, IconButton, Tooltip } from '@material-tailwind/react';
+import Table from './Table';  // Import the shared Table component
+import LectureForm from './LectureForm';  // Import the shared Form component
+import DeleteConfirmation from './DeleteConfirmation';  // Import the shared DeleteConfirmation component
+import axios from 'axios';
+
+const LectureComponent = () => {
+    const [open, setOpen] = useState(false);
+    const [deleteFormOpen, setDeleteFormOpen] = useState(false);
+    const handleOpen = () => setOpen((cur) => !cur);
+    const handleDeleteFormOpen = () => setDeleteFormOpen((cur) => !cur);
+
+    const [loading, setLoading] = useState(false);
+
+    const [lectureDetails, setLectureDetails] = useState([]);
+    const [editingRow, setEditingRow] = useState(null);
+    const [deletingRow, setDeletingRow] = useState(null);
+
+    const { values, handleChange, handleSubmit, setValues } = useFormik({
+        initialValues: initialValues,
+        onSubmit: async (values) => {
+            setLoading(true);
+
+            try {
+                const res = await axios.post('http://localhost:8080/lecture', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    lecture_desc: values.lecture_desc,
+                    lecture_number: values.lecture_number,
+                    video_URL: values.video_URL,
+                    status: values.status,
+                    // Additional fields as needed
+                });
+
+                if (res.status === 200) {
+                    setLectureDetails([...lectureDetails, res.data]); // Update the lecture details after adding a new lecture
+                    setLoading(false);
+                    handleOpen();
+                }
+            } catch (error) {
+                setLoading(false);
+                console.error('Error creating lecture:', error);
+            }
+        },
+    });
+
+    const onDelete = (row) => {
+        setDeletingRow(row);
+        handleDeleteFormOpen();
+    };
+
+    const deleteLecture = async () => {
+        try {
+            await axios.delete(`http://localhost:8080/lecture/${deletingRow.id}`);
+            // Optionally, you may want to re-fetch the updated lecture details after deletion
+            const updatedLectureDetails = await axios.get('http://localhost:8080/lecture');
+            setLectureDetails(updatedLectureDetails.data);
+        } catch (error) {
+            console.error('Error deleting lecture:', error);
+        }
+
+        setDeletingRow(null);
+        handleDeleteFormOpen();
+    };
+
+    useEffect(() => {
+        const getAllLectures = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/lectures');
+                setLectureDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching lectures:', error);
+            }
+        };
+
+        getAllLectures();
+    }, []);
+
+    return (
+        <div>
+            <Card className="h-full w-[1000px] lg:ml-80 lg:p-4">
+                {/* ... (rest of the code) ... */}
+                {type === 'lecture' && (
+                    <Table
+                        headers={['Lecture', 'Lecture Description', 'Lecture Number', 'Video URL', 'Status', '']}
+                        rows={lectureDetails.map((lecture) => ({
+                            id: lecture.lecture_id,
+                            cells: [lecture.lecture_id, lecture.lecture_desc, lecture.lecture_number, lecture.video_URL, lecture.status, ''],
+                        }))}
+
+                        onEdit={(row) => {
+                            setEditingRow(row);
+                            setValues({
+                                lecture_desc: row.cells[1],
+                                lecture_number: row.cells[2],
+                                video_URL: row.cells[3],
+                                status: row.cells[4],
+                                // Additional fields as needed
+                            });
+                            console.log('Edit lecture ID:', row.id);
+                            handleOpen();
+                        }}
+                    />
+                )}
+            </Card>
+            {/* ... (rest of the code) ... */}
+        </div>
+    );
+};
+
+export default LectureComponent;

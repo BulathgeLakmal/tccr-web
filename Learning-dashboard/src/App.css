@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: "Filson Soft W03 Regular"
+}
+
+@font-face {
+  font-family: "Filson Soft W03 Regular";
+  src: url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.eot");
+  src: url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.eot?#iefix")format("embedded-opentype"),
+  url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.woff2")format("woff2"),
+  url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.woff")format("woff"),
+  url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.ttf")format("truetype"),
+  url("https://db.onlinewebfonts.com/t/c5fc2b05949b051c07482453e8e0c1e6.svg#Filson Soft W03 Regular")format("svg");
+}

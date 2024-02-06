@@ -1,0 +1,108 @@
+import React, { useState, useEffect } from 'react';
+import { PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/solid';
+import { Card, CardBody, Typography, Button, Tabs, TabsHeader, Tab, IconButton, Tooltip } from '@material-tailwind/react';
+import Table from './Table';  // Import the shared Table component
+import ModuleForm from './ModuleForm';  // Import the shared Form component
+import DeleteConfirmation from './DeleteConfirmation';  // Import the shared DeleteConfirmation component
+import axios from 'axios';
+
+const ModuleComponent = () => {
+    const [open, setOpen] = useState(false);
+    const [deleteFormOpen, setDeleteFormOpen] = useState(false);
+    const handleOpen = () => setOpen((cur) => !cur);
+    const handleDeleteFormOpen = () => setDeleteFormOpen((cur) => !cur);
+
+    const [loading, setLoading] = useState(false);
+
+    const [moduleDetails, setModuleDetails] = useState([]);
+    const [editingRow, setEditingRow] = useState(null);
+    const [deletingRow, setDeletingRow] = useState(null);
+
+    const { values, handleChange, handleSubmit, setValues } = useFormik({
+        initialValues: initialValues,
+        onSubmit: async (values) => {
+            setLoading(true);
+
+            try {
+                const res = await axios.post('http://localhost:8080/module', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    module_name: values.module_name,
+                    // Additional fields as needed
+                });
+
+                if (res.status === 200) {
+                    setModuleDetails([...moduleDetails, res.data]); // Update the module details after adding a new module
+                    setLoading(false);
+                    handleOpen();
+                }
+            } catch (error) {
+                setLoading(false);
+                console.error('Error creating module:', error);
+            }
+        },
+    });
+
+    const onDelete = (row) => {
+        setDeletingRow(row);
+        handleDeleteFormOpen();
+    };
+
+    const deleteModule = async () => {
+        try {
+            await axios.delete(`http://localhost:8080/module/${deletingRow.id}`);
+            // Optionally, you may want to re-fetch the updated module details after deletion
+            const updatedModuleDetails = await axios.get('http://localhost:8080/module');
+            setModuleDetails(updatedModuleDetails.data);
+        } catch (error) {
+            console.error('Error deleting module:', error);
+        }
+
+        setDeletingRow(null);
+        handleDeleteFormOpen();
+    };
+
+    useEffect(() => {
+        const getAllModules = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/module');
+                setModuleDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching modules:', error);
+            }
+        };
+
+        getAllModules();
+    }, []);
+
+    return (
+        <div>
+            <Card className="h-full w-[1000px] lg:ml-80 lg:p-4">
+                {/* ... (rest of the code) ... */}
+                {type === 'module' && (
+                    <Table
+                        headers={['Module', 'Module Name', '']}
+                        rows={moduleDetails.map((module) => ({
+                            id: module.module_id,
+                            cells: [module.module_id, module.module_name, ''],
+                        }))}
+
+                        onEdit={(row) => {
+                            setEditingRow(row);
+                            setValues({
+                                module_name: row.cells[1],
+                                // Additional fields as needed
+                            });
+                            console.log('Edit module with ID:', row.id);
+                            handleOpen();
+                        }}
+                    />
+                )}
+            </Card>
+            {/* ... (rest of the code) ... */}
+        </div>
+    );
+};
+
+export default ModuleComponent;

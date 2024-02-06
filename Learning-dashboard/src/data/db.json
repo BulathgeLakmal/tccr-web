@@ -1,0 +1,46 @@
+{
+    "tutors": [
+        {
+            "tutorId":1,
+            "name": "Paul Hodgson",
+            "courses": [
+                {
+                    "id": 101,
+                    "title": "Full Stack Development with React & Node JS - Live"
+                
+                },
+                {
+                    "id": 102,
+                    "title": "Complete Machine Learning & Data Science Program"
+                
+                },
+                {
+                    "id": 103,
+                    "title": "GATE Data Science and Artificial Intelligence 2024"
+                
+                }
+            ]
+        },
+        {
+            "tutorId":2,
+            "name": "Ann Herisson",
+            "courses": [
+                {
+                    "id": 201,
+                    "title": "Full Stack Development with React & Node JS - Live"
+                
+                },
+                {
+                    "id": 202,
+                    "title": "Complete Machine Learning & Data Science Program"
+                
+                },
+                {
+                    "id": 203,
+                    "title": "GATE Data Science and Artificial Intelligence 2024"
+                
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,128 @@
+import React, { useState, useEffect } from 'react';
+import { PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/solid';
+import { Card, CardBody, Typography, Button, Tabs, TabsHeader, Tab, IconButton, Tooltip } from '@material-tailwind/react';
+import Table from './Table';
+import axios from 'axios';
+import { useFormik } from 'formik';  // Import the missing useFormik
+import CourseForm from './CourseForm';
+import DeleteConfirmation from './DeleteConfirmation';
+
+const initialValues = {
+    course_name: '',
+    course_desc: '',
+    category: '',
+};
+
+const CourseComponent = () => {
+    const [open, setOpen] = useState(false);
+    const [deleteFormOpen, setDeleteFormOpen] = useState(false);
+    const handleOpen = () => setOpen((cur) => !cur);
+    const handleDeleteFormOpen = () => setDeleteFormOpen((cur) => !cur);
+
+    const [loading, setLoading] = useState(false);
+
+    const [courseDetails, setCourseDetails] = useState([]);
+    const [editingRow, setEditingRow] = useState(null);
+    const [deletingRow, setDeletingRow] = useState(null);
+
+    const { values, handleChange, handleSubmit, setValues } = useFormik({
+        initialValues: initialValues,
+        onSubmit: async (values) => {
+            setLoading(true);
+
+            try {
+                const res = await axios.post('http://localhost:8080/course', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    course_name: values.course_name,
+                    course_desc: values.course_desc,
+                    category: values.category,
+                });
+
+                if (res.status === 200) {
+                    setCourseDetails([...courseDetails, res.data]); // Update the course details after adding a new course
+                    setLoading(false);
+                    handleOpen();
+                }
+            } catch (error) {
+                setLoading(false);
+                console.error('Error creating course:', error);
+            }
+        },
+    });
+
+    const onDelete = (row) => {
+        setDeletingRow(row);
+        handleDeleteFormOpen();
+    };
+
+    const deleteCourse = async () => {
+        try {
+            await axios.delete(`http://localhost:8080/course/${deletingRow.id}`);
+            // Optionally, you may want to re-fetch the updated course details after deletion
+            const updatedCourseDetails = await axios.get('http://localhost:8080/course');
+            setCourseDetails(updatedCourseDetails.data);
+        } catch (error) {
+            console.error('Error deleting course:', error);
+        }
+
+        setDeletingRow(null);
+        handleDeleteFormOpen();
+    };
+
+    useEffect(() => {
+        const getAllCourses = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/course');
+                setCourseDetails(response.data);
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+            }
+        };
+
+        getAllCourses();
+    }, []);
+
+    return (
+        <div>
+            <Card className="h-full w-[1000px] lg:ml-80 lg:p-4">
+                {/* ... (rest of the code) ... */}
+                {type === 'course' && (
+                    <Table
+                        headers={['Course', 'Course Name', 'Description', 'Category', '']}
+                        rows={courseDetails.map((course) => ({
+                            id: course.course_id,
+                            cells: [course.course_id, course.course_name, course.course_desc, course.category, ''],
+                        }))}
+
+                        onEdit={(row) => {
+                            setEditingRow(row);
+                            setValues({
+                                course_name: row.cells[1],
+                                course_desc: row.cells[2],
+                                category: row.cells[3],
+                            });
+                            console.log('Edit course with ID:', row.id);
+                            handleOpen();
+                        }}
+
+                        onDelete={(row) => {
+                            setDeletingRow(row);
+                            setValues({
+                                course_name: row.cells[1],
+                                course_desc: row.cells[2],
+                                category: row.cells[3],
+                            });
+                            console.log('Delete course with ID:', row.id);
+                            handleDeleteFormOpen();
+                        }}
+                    />
+                )}
+            </Card>
+            {/* ... (rest of the code) ... */}
+        </div>
+    );
+};
+
+export default CourseComponent;
